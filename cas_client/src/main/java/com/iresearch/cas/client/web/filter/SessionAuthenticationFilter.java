@@ -10,37 +10,33 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import com.iresearch.cas.client.filter.AbstractInitParamFilter;
 import com.iresearch.cas.client.filter.AuthenticationFilter;
+import com.iresearch.cas.client.filter.RedirectAuthenticationFilter;
 import com.iresearch.cas.client.web.filter.exception.RedirectAddressNotExistsException;
 import com.iresearch.cas.client.web.filter.exception.SessionAttributeNotExistsException;
 
-public class SessionAuthenticationFilter extends AbstractInitParamFilter implements AuthenticationFilter{
+public class SessionAuthenticationFilter extends RedirectAuthenticationFilter implements AuthenticationFilter{
 	
 	private String sessionAttributeName;
-	
-	private String remoteServerAddress;
-	
+		
 	public void setSessionAttributeName(String sessionAttributeName) {
 		this.sessionAttributeName = sessionAttributeName;
-	}
-
-	public void setRemoteServerAddress(String remoteServerAddress) {
-		this.remoteServerAddress = remoteServerAddress;
 	}
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		// TODO Auto-generated method stub
-		if(isAuthenticated((HttpServletRequest)request)){
-			if(StringUtils.isEmpty(remoteServerAddress)){
+		if(!isAuthenticated((HttpServletRequest)request)){
+			if(StringUtils.isEmpty(this.getRemoteServerUrl())){
 				throw new RedirectAddressNotExistsException("服务端地址不能为空!");
 			}
-		    ((HttpServletResponse)response).sendRedirect(remoteServerAddress);
+		    ((HttpServletResponse)response).sendRedirect(this.getRemoteServerUrl());
 			return;
+		}else{
+			chain.doFilter(request, response);
 		}
 	}
 
@@ -48,10 +44,10 @@ public class SessionAuthenticationFilter extends AbstractInitParamFilter impleme
 	public boolean isAuthenticated(HttpServletRequest request) {
 		// TODO Auto-generated method stub
 		HttpSession session=request.getSession();
-		if(StringUtils.isEmpty(sessionAttributeName)){
+		if(StringUtils.isBlank(sessionAttributeName)){
 			throw new SessionAttributeNotExistsException("session属性不存在!");
 		}
-		return session.getAttribute(sessionAttributeName)==null;
+		return !(session.getAttribute(sessionAttributeName)==null);
 	}
 
 }
