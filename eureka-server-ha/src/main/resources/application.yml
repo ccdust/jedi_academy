@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: eureka-server-ha
+---
+spring:
+  profiles: azeroth
+server:
+  port: 8761
+eureka:
+  instance:
+    hostname: azeroth
+  client:
+    serviceUrl:
+      defaultZone: http://lordaeron:8762/eureka/
+---
+spring:
+  profiles: lordaeron
+server:
+  port: 8762
+eureka:
+  instance:
+    hostname: lordaeron
+  client:
+    serviceUrl:
+      defaultZone: http://azeroth:8761/eureka/
